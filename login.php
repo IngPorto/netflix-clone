@@ -1,7 +1,22 @@
 <?php
-    if(isset($_POST["username"])){
-        echo "Submited";
+require_once './includes/config.php';
+require_once './includes/classes/FormSanitizer.php';
+require_once './includes/classes/Account.php';
+
+$account = new Account($connexion);
+
+if (isset($_POST["username"]) && isset($_POST["password"])) {
+    $username = FormSanitizer::sanitizeFormUsername($_POST["username"]);
+    $password = FormSanitizer::sanitizeFormPassword($_POST["password"]);
+
+    $user = $account->login($username, $password);
+    if ($user) {
+        unset($user['password']);
+        $_SESSION['user'] = $user;
+        header('Location: index.php');
+        die();
     }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -22,15 +37,18 @@
             <form action="" method="post">
                 <div class="formGroup">
                     <label for="username">Username</label>
-                    <input type="text" placeholder="Username" name="username" id="username" required>
+                    <input type="text" placeholder="Username" name="username" id="username" value="<?=isset($username) ? $username : ''?>" required>
+                    <?=$account->getError('username')?>
                 </div>
                 <div class="formGroup">
                     <label for="password">Password</label>
                     <input type="password" placeholder="Password" name="password" id="password" required>
+                    <?=$account->getError('password')?>
                 </div>
 
                 <br>
                 <button class="submit-btn" type="submit">Continue</button>
+                <?=$account->getError('system')?>
             </form>
             <p>Need an account? <a href="./register.php">Sign up here!</a></p>
         </div>

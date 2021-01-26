@@ -1,35 +1,48 @@
 <?php
-    require_once('./includes/config.php');
-    require_once('./includes/classes/FormSanitizer.php');
-    require_once('./includes/classes/Account.php');
+require_once './includes/config.php';
+require_once './includes/classes/FormSanitizer.php';
+require_once './includes/classes/Account.php';
 
-    $account = new Account($connexion);
+$account = new Account($connexion);
 
-    if(isset($_POST["firstName"])){
-        $firstName = FormSanitizer::sanitizeFormString($_POST["firstName"]);
-        $lastName = FormSanitizer::sanitizeFormString($_POST["lastName"]);
-        $username = FormSanitizer::sanitizeFormUsername($_POST["username"]);
-        $email = FormSanitizer::sanitizeFormEmail($_POST["email"]);
-        $confirmEmail = FormSanitizer::sanitizeFormEmail($_POST["confirmEmail"]);
-        $password = FormSanitizer::sanitizeFormPassword($_POST["password"]);
-        $confirmPassword = FormSanitizer::sanitizeFormPassword($_POST["confirmPassword"]);
+if (isset($_POST["firstName"]) &&
+    isset($_POST["lastName"]) &&
+    isset($_POST["username"]) &&
+    isset($_POST["email"]) &&
+    isset($_POST["confirmEmail"]) &&
+    isset($_POST["password"]) &&
+    isset($_POST["confirmPassword"])
+) {
 
-        $inputs = [ 
-            $firstName,
-            $lastName,
-            $username,
-            $email,
-            $confirmEmail,
-            $password,
-            $confirmPassword
-        ];
-        echo "<pre>";
-        print_r(($inputs));
-        echo "</pre>";
+    $firstName = FormSanitizer::sanitizeFormString($_POST["firstName"]);
+    $lastName = FormSanitizer::sanitizeFormString($_POST["lastName"]);
+    $username = FormSanitizer::sanitizeFormUsername($_POST["username"]);
+    $email = FormSanitizer::sanitizeFormEmail($_POST["email"]);
+    $confirmEmail = FormSanitizer::sanitizeFormEmail($_POST["confirmEmail"]);
+    $password = FormSanitizer::sanitizeFormPassword($_POST["password"]);
+    $confirmPassword = FormSanitizer::sanitizeFormPassword($_POST["confirmPassword"]);
 
-        $account->validateFirstName($firstName);
-        $account->validateLastName($lastName);
+    $inputs = [
+        $firstName,
+        $lastName,
+        $username,
+        $email,
+        $confirmEmail,
+        $password,
+        $confirmPassword,
+    ];
+    echo "<pre>";
+    print_r(($inputs));
+    echo "</pre>";
+
+    $user = $account->register($firstName, $lastName, $username, $email, $confirmEmail, $password, $confirmPassword);
+    if ($user) {
+        unset($user['password']);
+        $_SESSION['user'] = $user;
+        header('Location: index.php');
+        die();
     }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,42 +64,43 @@
             <form action="" method="post">
                 <div class="formGroup">
                     <label for="firstName">First Name</label>
-                    <input type="text" placeholder="Fist Name" name="firstName" id="firstName" value="<?= isset($firstName) ? $firstName : '' ?>" required>
-                    <?= $account->getError('firstName') ?>
+                    <input type="text" placeholder="Fist Name" name="firstName" id="firstName" value="<?=isset($firstName) ? $firstName : ''?>" required>
+                    <?=$account->getError('firstName')?>
                 </div>
                 <div class="formGroup">
                     <label for="lastName">Last Name</label>
-                    <input type="text" placeholder="Last Name" name="lastName" id="lastName" value="<?= isset($lastName) ? $lastName : '' ?>" required>
-                    <?= $account->getError('lastName') ?>
+                    <input type="text" placeholder="Last Name" name="lastName" id="lastName" value="<?=isset($lastName) ? $lastName : ''?>" required>
+                    <?=$account->getError('lastName')?>
                 </div>
                 <div class="formGroup">
                     <label for="username">Username</label>
-                    <input type="text" placeholder="Username" name="username" id="username" value="<?= isset($username) ? $username : '' ?>" required>
-                    <?= $account->getError('username') ?>
+                    <input type="text" placeholder="Username" name="username" id="username" value="<?=isset($username) ? $username : ''?>" required>
+                    <?=$account->getError('username')?>
                 </div>
                 <div class="formGroup">
                     <label for="email">Email</label>
-                    <input type="email" placeholder="Email" name="email" id="email" value="<?= isset($email) ? $email : '' ?>" required>
-                    <?= $account->getError('email') ?>
+                    <input type="email" placeholder="Email" name="email" id="email" value="<?=isset($email) ? $email : ''?>" required>
+                    <?=$account->getError('email')?>
                 </div>
                 <div class="formGroup">
                     <label for="confirmEmail">Confirm Email</label>
-                    <input type="email" placeholder="Confirm Email" name="confirmEmail" id="confirmEmail" value="<?= isset($confirmEmail) ? $confirmEmail : '' ?>" required>
-                    <?= $account->getError('confirmEmail') ?>
+                    <input type="email" placeholder="Confirm Email" name="confirmEmail" id="confirmEmail" value="<?=isset($confirmEmail) ? $confirmEmail : ''?>" required>
+                    <?=$account->getError('confirmEmail')?>
                 </div>
                 <div class="formGroup">
                     <label for="password">Password</label>
                     <input type="password" placeholder="Password" name="password" id="password" required>
-                    <?= $account->getError('password') ?>
+                    <?=$account->getError('password')?>
                 </div>
                 <div class="formGroup">
                     <label for="confirmPassword">Confirm Password</label>
                     <input type="password" placeholder="Confirm Password" name="confirmPassword" id="confirmPassword" required>
-                    <?= $account->getError('confirmPassword') ?>
+                    <?=$account->getError('confirmPassword')?>
                 </div>
 
                 <br>
                 <button class="submit-btn" type="submit">Continue</button>
+                <?=$account->getError('system')?>
             </form>
             <p>Already have an account? <a href="./login.php">Sign in here!</a></p>
         </div>
